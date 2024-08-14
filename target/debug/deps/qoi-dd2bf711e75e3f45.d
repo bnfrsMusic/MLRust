@@ -1,0 +1,13 @@
+C:\Users\sahoo\Desktop\CodingProjects\RustNeuralNetwork\rust_neural_network\target\debug\deps\libqoi-dd2bf711e75e3f45.rmeta: C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src/lib.rs C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\decode.rs C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\encode.rs C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\error.rs C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\header.rs C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\pixel.rs C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\types.rs C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\utils.rs C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\consts.rs
+
+C:\Users\sahoo\Desktop\CodingProjects\RustNeuralNetwork\rust_neural_network\target\debug\deps\qoi-dd2bf711e75e3f45.d: C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src/lib.rs C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\decode.rs C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\encode.rs C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\error.rs C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\header.rs C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\pixel.rs C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\types.rs C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\utils.rs C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\consts.rs
+
+C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src/lib.rs:
+C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\decode.rs:
+C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\encode.rs:
+C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\error.rs:
+C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\header.rs:
+C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\pixel.rs:
+C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\types.rs:
+C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\utils.rs:
+C:\Users\sahoo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\qoi-0.4.1\src\consts.rs:
