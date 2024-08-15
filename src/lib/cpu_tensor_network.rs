@@ -44,33 +44,18 @@ impl CPUTensorNetwork {
             weights, biases, ..
         }) = self.layers.back()
         {
-            //            println!("Previous layer weights:");
-            //
-            //            println!("weight data: {:?}", weights.data); // Replace this with appropriate method to print Tensor contents
-            //            println!("weight shape: {:?}", weights.shape);
-            //
-            //            println!("Previous layer biases:");
-            //            println!("bias data: {:?}", biases.data);
-            //            println!("bias shape: {:?}", biases.shape);
             //Calculate Weight based off previous inputs and the amount of nodes
-            w = Tensor::random(vec![biases.data.len(), amount]);
-
-        //            println!(
-        //                "Biases: {:?} and ideal weight shape: {:?}, ideal weight data: {:?}",
-        //                biases.data, w.shape, w.data,
-        //            );
+            w = Tensor::random(vec![amount, biases.data.len()]);
         } else if let Some(Layer::InputLayer { size }) = self.layers.back() {
-            //            println!("Input Layer Neurons: {:?}", size);
-            w = Tensor::random(vec![size.clone(), amount]);
-            //            println!(
-            //                "Coming ftom inpuy shape {:?} and data {:?}",
-            //                w.shape, w.data
-            //            );
+            w = Tensor::random(vec![amount, size.clone()]);
         }
 
         //Adds tensor layers to the network depending on amount specified
         let weights: Tensor = w; //Creates iterator and creates that many tensors and puts it into a Vector
-        let biases: Tensor = Tensor::random(vec![amount]); //Creates iterator and creates that many tensors and puts it into a Vector
+        let mut biases: Tensor = Tensor::random(vec![amount]); //Creates iterator and creates that many tensors and puts it into a Vector
+        if biases.shape.len() < 2 {
+            biases.increase_dim(1);
+        }
         let activations = act;
 
         println!("------------------------------------");
@@ -96,6 +81,9 @@ impl CPUTensorNetwork {
         );
 
         let mut current_output = input.clone();
+        if input.shape.len() < 2 {
+            current_output.increase_dim(1);
+        }
         let mut final_output: Option<Tensor> = None;
 
         for layer in &self.layers {
@@ -107,12 +95,18 @@ impl CPUTensorNetwork {
                 } => {
                     println!("Processing through Tensor Layer");
                     // Perform matrix multiplication
-                    current_output = current_output.multiply(weights);
+                    let mut w: Tensor = weights.clone();
+                    //w.increase_dim(1);
+                    println!(
+                        "Current = shape:\n{:?}\ndata:\n{:?}",
+                        current_output.shape, current_output.data
+                    );
+                    current_output = w.multiply(&current_output);
 
                     // Add the biases
-                    current_output = current_output.add(biases);
+                    current_output.add(biases);
 
-                    // Apply each activation function in sequence
+                    // Apply each activation function
                     for activation in activations {
                         current_output = current_output.map(activation.function);
                     }
@@ -125,5 +119,23 @@ impl CPUTensorNetwork {
 
         current_output
         //.expect("No tensor output found. Network might be empty or improperly configured.")
+    }
+
+    pub fn back_propogate(&mut self, outputs: Vec<f64>, targets: Vec<f64>) {
+        for layer in &self.layers {
+            match layer {
+                Layer::TensorLayer {
+                    weights,
+                    biases,
+                    activations,
+                } => {
+
+                    //code goes here
+                }
+                Layer::InputLayer { size } => {
+                    print!("Input Layer")
+                }
+            }
+        }
     }
 }

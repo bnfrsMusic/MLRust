@@ -1,3 +1,5 @@
+use std::thread::panicking;
+
 use rand::{thread_rng, Rng};
 //use std::default::Default;
 
@@ -26,16 +28,13 @@ impl Tensor {
 
         Tensor { shape, data }
     }
-
     pub fn get(&self, index: Vec<usize>) -> f64 {
-        // Calculate the linear index from the multi-dimensional index
         let mut res = 0;
         let mut stride = 1;
 
-        for i in 0..index.len() {
-            // Ensure the index is within bounds
+        // Iterate over the dimensions in reverse order
+        for i in (0..index.len()).rev() {
             assert!(index[i] < self.shape[i]);
-
             res += index[i] * stride;
             stride *= self.shape[i];
         }
@@ -44,14 +43,12 @@ impl Tensor {
     }
 
     pub fn set(&mut self, index: Vec<usize>, value: f64) {
-        // Calculate the linear index from the multi-dimensional index
         let mut res = 0;
         let mut stride = 1;
 
-        for i in 0..index.len() {
-            // Ensure the index is within bounds
+        // Iterate over the dimensions in reverse order
+        for i in (0..index.len()).rev() {
             assert!(index[i] < self.shape[i]);
-
             res += index[i] * stride;
             stride *= self.shape[i];
         }
@@ -145,31 +142,60 @@ impl Tensor {
     pub fn multiply(&self, other: &Tensor) -> Tensor {
         let self_shape_len = self.shape.len();
         let other_shape_len = other.shape.len();
+        println!("{:?} and {:?}", self_shape_len, other_shape_len);
+
+        println!(
+            "self shape: {:?} \n other shape: {:?}",
+            self.shape, other.shape
+        );
+        if (other_shape_len == 1 && self_shape_len > other_shape_len) {
+            let mut res = Tensor::new(vec![self.shape[0], other.shape[1]]);
+            panic!(
+                "TYPE 1, self shape: {:?} \n other shape: {:?}",
+                self.shape, other.shape
+            );
+            return res;
+        }
+
+        if (self_shape_len == 1 && self_shape_len < other_shape_len) {
+            panic!(
+                "TYPE 2, self shape: {:?} \n other shape: {:?}",
+                self.shape, other.shape
+            );
+        }
 
         // Check if Strassen's algorithm is applicable
-        if self_shape_len == 2
-            && other_shape_len == 2
-            && self.shape == other.shape
-            && self.shape[0] == self.shape[1]
-        {
+
+        if self_shape_len == 2 && other_shape_len == 2 && self.shape == other.shape {
             println!("A\n\n\n");
-            return self.strassen_multiply(other);
+            let res = self.strassen_multiply(other);
+            println!("shape: {:?} data: {:?}", res.shape, res.data);
+            return res;
         }
 
         // Check if both tensors are 2D
         if self_shape_len == 2
             && other_shape_len == 2
-            && ((self.shape[1] == other.shape[0]) || (self.shape[0] == self.shape[1]))
+            && (self.shape[1] == other.shape[0] || self.shape[0] == self.shape[1])
         {
             println!("B\n\n\n");
-            return self.matrix_multiply(other);
+            let res = self.matrix_multiply(other);
+            println!("shape: {:?} data: {:?}", res.shape, res.data);
+            return res;
         }
         println!("C\n\n\n");
         // Use Kronecker product for other cases
-        return self.kronecker_product(other);
+        panic!(
+            "NO MULTIPLICATION POSSIBLE. INCOMPATIBLE DIMENSIONS {:?} AND {:?}",
+            self.shape, other.shape
+        )
+        //return self.kronecker_product(other);
     }
 
     fn matrix_multiply(&self, other: &Tensor) -> Tensor {
+        assert!(self.shape.len() == 2 && other.shape.len() == 2);
+        assert!(self.shape[1] == other.shape[0]);
+
         let mut res = Tensor::new(vec![self.shape[0], other.shape[1]]);
 
         for i in 0..self.shape[0] {
@@ -266,41 +292,49 @@ impl Tensor {
 
     //--------------------------------------------------------------Addition and Substraction---------------------------------------------------------------------
 
-    pub fn add(&self, other: &Tensor) -> Tensor {
-        if self.shape == other.shape {
-            let mut res = Tensor::new(self.shape.clone());
-            for i in 0..self.data.len() {
-                res.data[i] = self.data[i] + other.data[i];
+    pub fn add(&mut self, other: &Tensor) {
+        assert!(
+            self.shape == other.shape || other.shape.len() == 1 && other.shape[0] == self.shape[0],
+            "Shape mismatch for addition"
+        );
+
+        if other.shape.len() == 1 && self.shape.len() == 2 {
+            // Broadcasting the biases across the second dimension
+            for i in 0..self.shape[0] {
+                for j in 0..self.shape[1] {
+                    self.data[i * self.shape[1] + j] += other.data[i];
+                }
             }
-            res
-        } else if other.shape.len() == 1 && other.shape[0] == self.shape[self.shape.len() - 1] {
-            // Broadcasting
-            let mut res = Tensor::new(self.shape.clone());
-            for i in 0..self.data.len() {
-                res.data[i] = self.data[i] + other.data[i % other.data.len()];
-            }
-            res
         } else {
-            panic!(
-                "Attempted to add tensors of incompatible dimensions: {:?} and {:?}",
-                self.shape, other.shape
-            );
+            for i in 0..self.data.len() {
+                self.data[i] += other.data[i];
+            }
         }
     }
 
-    pub fn substract(&self, other: &Tensor) -> Tensor {
-        if self.shape != other.shape {
-            panic!(
-                "Attempted to substract tensors of incompatible dimensions: {:?} and {:?}",
-                self.shape, other.shape
-            );
-        }
+    pub fn substract(&mut self, other: &Tensor) {
+        assert!(
+            self.shape == other.shape || other.shape.len() == 1 && other.shape[0] == self.shape[0],
+            "Shape mismatch for substraction"
+        );
 
-        let mut res = Tensor::new(self.shape.clone());
-
-        for i in 0..self.data.len() {
-            res.data[i] = self.data[i] - other.data[i];
+        if other.shape.len() == 1 && self.shape.len() == 2 {
+            // Broadcasting the biases across the second dimension
+            for i in 0..self.shape[0] {
+                for j in 0..self.shape[1] {
+                    self.data[i * self.shape[1] + j] -= other.data[i];
+                }
+            }
+        } else {
+            for i in 0..self.data.len() {
+                self.data[i] -= other.data[i];
+            }
         }
-        res
+    }
+
+    pub fn increase_dim(&mut self, amt: usize) {
+        for _i in 0..amt {
+            self.shape.push(1);
+        }
     }
 }

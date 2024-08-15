@@ -1,11 +1,12 @@
-use lib::{activations::SIGMOID, loss::MSE, tensor::Tensor};
+use lib::{activations::SIGMOID, tensor::Tensor};
 use std::vec;
 pub mod lib;
 use lib::cpu_tensor_network::CPUTensorNetwork;
 
 fn main() {
     let mut network = CPUTensorNetwork::new(2);
-    network.add_tensor_layer(2, vec![SIGMOID]);
+    //network.add_tensor_layer(2, vec![SIGMOID]);
+    network.add_tensor_layer(3, vec![SIGMOID]);
     network.add_tensor_layer(3, vec![SIGMOID]);
     network.add_tensor_layer(1, vec![SIGMOID]);
 
