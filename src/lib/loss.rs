@@ -3,8 +3,19 @@ use super::tensor::Tensor;
 pub struct LossFunction {
     pub name: &'static str,
     pub function: fn(&Tensor, &Tensor) -> f64,
-    pub derivative: fn(&Tensor, &Tensor) -> Tensor,
+    //pub derivative: fn(&Tensor, &Tensor) -> Tensor,
 }
+
+pub const MSE: LossFunction = LossFunction {
+    name: "Mean Squared Error",
+    function: |predicted: &Tensor, actual: &Tensor| {
+        //Function
+        let mut diff = predicted.clone();
+        diff.substract(actual);
+        diff.dot(&diff);
+        diff.data.iter().sum::<f64>() / (predicted.data.len() as f64)
+    },
+};
 
 //pub const MSE: LossFunction = LossFunction {
 //    name: "Mean Squared Error",

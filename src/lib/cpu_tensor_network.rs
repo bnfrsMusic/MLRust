@@ -1,9 +1,5 @@
-use rand::distributions::weighted;
-
-use crate::lib::{activations, pooling};
-
-use super::{activations::Activation, loss::LossFunction, tensor::Tensor};
-use std::{any::Any, collections::VecDeque};
+use super::{activations::Activation, tensor::Tensor};
+use std::collections::VecDeque;
 
 //#[derive(Clone)]
 pub enum Layer {
@@ -13,13 +9,12 @@ pub enum Layer {
     TensorLayer {
         weights: Tensor,
         biases: Tensor,
-        activations: Vec<Activation<'static>>,
+        activations: Activation<'static>,
     },
 }
 //
 pub struct CPUTensorNetwork {
     layers: VecDeque<Layer>,
-    learning_rate: f64,
 }
 
 //
@@ -27,18 +22,15 @@ impl CPUTensorNetwork {
     //Constructor
     pub fn new(input_size: usize) -> CPUTensorNetwork {
         //Initiallizes the network
-        let mut layers = VecDeque::new();
-        layers.push_back(Layer::InputLayer { size: input_size });
-        CPUTensorNetwork {
-            layers: layers,
-            learning_rate: 0.5,
-        }
+        let mut layersVec = VecDeque::new();
+        layersVec.push_back(Layer::InputLayer { size: input_size });
+        CPUTensorNetwork { layers: layersVec }
     }
 
     //--------------------------------------------------------------Layers---------------------------------------------------------------------
 
     //
-    pub fn add_tensor_layer(&mut self, amount: usize, act: Vec<Activation<'static>>) {
+    pub fn add_tensor_layer(&mut self, amount: usize, act: Activation<'static>) {
         let mut w: Tensor = Tensor::new(Vec::new());
         if let Some(Layer::TensorLayer {
             weights, biases, ..
@@ -61,7 +53,7 @@ impl CPUTensorNetwork {
         println!("------------------------------------");
         println!(
             "Weights shape: {:?} \n Weights data: {:?} \n Biases shape: {:?} \n Biases data: {:?}",
-            weights.data, weights.shape, biases.data, biases.shape
+            weights.shape, weights.data, biases.shape, biases.data
         );
         self.layers.push_back(Layer::TensorLayer {
             weights,
@@ -107,9 +99,9 @@ impl CPUTensorNetwork {
                     current_output.add(biases);
 
                     // Apply each activation function
-                    for activation in activations {
-                        current_output = current_output.map(activation.function);
-                    }
+                    //for activation in activations {
+                    current_output = current_output.map(activations.function);
+                    //}
                 }
                 Layer::InputLayer { size } => {
                     print!("Input Layer")
@@ -121,19 +113,61 @@ impl CPUTensorNetwork {
         //.expect("No tensor output found. Network might be empty or improperly configured.")
     }
 
-    pub fn back_propogate(&mut self, outputs: Vec<f64>, targets: Vec<f64>) {
-        for layer in &self.layers {
+    pub fn back_propogate(&mut self, outputs: Tensor, mut targets: Tensor, learning_rate: f64) {
+        //targets => the correct value
+
+        for layer in self.layers.iter_mut().rev() {
             match layer {
+                Layer::InputLayer { size } => {
+                    println!("Input shape: {:?}", size);
+                }
                 Layer::TensorLayer {
                     weights,
                     biases,
                     activations,
                 } => {
+                    //Finish this
 
-                    //code goes here
+                    println!("Layer weight shape: {:?}", weights.shape);
+                    println!("Layer weight data: {:?}", weights.data);
+                    println!("Layer biases shape: {:?}", biases.shape);
+                    println!("Activation: {:?} ", activations.name);
                 }
+            }
+        }
+    }
+    pub fn train(&mut self, input: Tensor, targets: Tensor, epoch: usize, learning_rate: f64) {
+        for i in 0..epoch {
+            println!("\n\n-------Current Epoch: {:?}-------", i);
+
+            self.back_propogate(
+                self.feed_forward(targets.clone()),
+                targets.clone(),
+                learning_rate,
+            )
+        }
+    }
+
+    //-------------------------------Debug Tools----------------------------------
+    pub fn print_network(&mut self) {
+        //targets => the correct value
+
+        for layer in self.layers.iter_mut() {
+            match layer {
                 Layer::InputLayer { size } => {
-                    print!("Input Layer")
+                    println!("Input shape: {:?}", size);
+                }
+                Layer::TensorLayer {
+                    weights,
+                    biases,
+                    activations,
+                } => {
+                    //Finish this
+
+                    println!("Layer weight shape: {:?}", weights.shape);
+                    println!("Layer weight data: {:?}", weights.data);
+                    println!("Layer biases shape: {:?}", biases.shape);
+                    println!("Activation: {:?} ", activations.name);
                 }
             }
         }

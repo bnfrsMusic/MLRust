@@ -167,7 +167,6 @@ impl Tensor {
         // Check if Strassen's algorithm is applicable
 
         if self_shape_len == 2 && other_shape_len == 2 && self.shape == other.shape {
-            println!("A\n\n\n");
             let res = self.strassen_multiply(other);
             println!("shape: {:?} data: {:?}", res.shape, res.data);
             return res;
@@ -178,18 +177,15 @@ impl Tensor {
             && other_shape_len == 2
             && (self.shape[1] == other.shape[0] || self.shape[0] == self.shape[1])
         {
-            println!("B\n\n\n");
             let res = self.matrix_multiply(other);
             println!("shape: {:?} data: {:?}", res.shape, res.data);
             return res;
         }
-        println!("C\n\n\n");
-        // Use Kronecker product for other cases
+        //Panic if incompatible dimensionsions.
         panic!(
             "NO MULTIPLICATION POSSIBLE. INCOMPATIBLE DIMENSIONS {:?} AND {:?}",
             self.shape, other.shape
         )
-        //return self.kronecker_product(other);
     }
 
     fn matrix_multiply(&self, other: &Tensor) -> Tensor {
@@ -210,7 +206,7 @@ impl Tensor {
 
         res
     }
-
+    /*
     fn kronecker_product(&self, other: &Tensor) -> Tensor {
         let mut new_shape = Vec::with_capacity(self.shape.len() + other.shape.len());
         for &dim in &self.shape {
@@ -234,7 +230,7 @@ impl Tensor {
         }
 
         result
-    }
+    }*/
 
     fn strassen_multiply(&self, other: &Tensor) -> Tensor {
         // Simplified version of Strassen's Algorithm for 2x2 matrices
@@ -295,7 +291,9 @@ impl Tensor {
     pub fn add(&mut self, other: &Tensor) {
         assert!(
             self.shape == other.shape || other.shape.len() == 1 && other.shape[0] == self.shape[0],
-            "Shape mismatch for addition"
+            "Shape mismatch for addition: {:?} and {:?}",
+            self.shape,
+            other.shape
         );
 
         if other.shape.len() == 1 && self.shape.len() == 2 {
@@ -315,7 +313,11 @@ impl Tensor {
     pub fn substract(&mut self, other: &Tensor) {
         assert!(
             self.shape == other.shape || other.shape.len() == 1 && other.shape[0] == self.shape[0],
-            "Shape mismatch for substraction"
+            "Shape mismatch for subtraction: {:?} and {:?} with data {:?} and {:?}",
+            self.shape,
+            other.shape,
+            self.data,
+            other.data
         );
 
         if other.shape.len() == 1 && self.shape.len() == 2 {
