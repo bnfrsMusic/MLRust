@@ -190,7 +190,7 @@ impl Tensor {
 
     fn matrix_multiply(&self, other: &Tensor) -> Tensor {
         assert!(self.shape.len() == 2 && other.shape.len() == 2);
-        assert!(self.shape[1] == other.shape[0]);
+        assert!(self.shape[1] == other.shape[0] || self.shape == other.shape);
 
         let mut res = Tensor::new(vec![self.shape[0], other.shape[1]]);
 

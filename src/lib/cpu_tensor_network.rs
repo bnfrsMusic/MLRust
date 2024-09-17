@@ -1,3 +1,5 @@
+use crate::lib::loss::MSE;
+
 use super::{activations::Activation, tensor::Tensor};
 use std::collections::VecDeque;
 
@@ -113,9 +115,10 @@ impl CPUTensorNetwork {
         //.expect("No tensor output found. Network might be empty or improperly configured.")
     }
 
-    pub fn back_propogate(&mut self, outputs: Tensor, mut targets: Tensor, learning_rate: f64) {
+    pub fn back_propogate(&mut self, outputs: Tensor, targets: Tensor, learning_rate: f64) {
         //targets => the correct value
 
+        let mut tot_res: Vec<Tensor> = vec![];
         for layer in self.layers.iter_mut().rev() {
             match layer {
                 Layer::InputLayer { size } => {
@@ -132,16 +135,27 @@ impl CPUTensorNetwork {
                     println!("Layer weight data: {:?}", weights.data);
                     println!("Layer biases shape: {:?}", biases.shape);
                     println!("Activation: {:?} ", activations.name);
+                    println!(
+                        "\nMSE: {:?}",
+                        (MSE.derivative)(&outputs, &targets, activations).data
+                    );
+                    tot_res.push((MSE.derivative)(&outputs, &targets, activations));
+                    //println!("RESULT SHAPE: {:?}\nRESULT DATA: {:?}", res.shape, res.data)
                 }
             }
+        }
+        for tensor in tot_res {
+            println!(
+                "RESULT Tensor Shape: {:?}\nData: {:?}",
+                tensor.shape, tensor.data
+            )
         }
     }
     pub fn train(&mut self, input: Tensor, targets: Tensor, epoch: usize, learning_rate: f64) {
         for i in 0..epoch {
             println!("\n\n-------Current Epoch: {:?}-------", i);
-
             self.back_propogate(
-                self.feed_forward(targets.clone()),
+                self.feed_forward(input.clone()),
                 targets.clone(),
                 learning_rate,
             )
