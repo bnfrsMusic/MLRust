@@ -172,7 +172,7 @@ impl Tensor {
 
         if self_shape_len == 2 && other_shape_len == 2 && self.shape == other.shape {
             let res = self.strassen_multiply(other);
-            println!("shape: {:?} data: {:?}", res.shape, res.data);
+            //println!("shape: {:?} data: {:?}", res.shape, res.data);
             return res;
         }
 
@@ -184,7 +184,7 @@ impl Tensor {
                 || self.shape[0] == self.shape[0])
         {
             let res = self.matrix_multiply(other);
-            println!("shape: {:?} data: {:?}", res.shape, res.data);
+            //println!("shape: {:?} data: {:?}", res.shape, res.data);
             return res;
         }
         //Panic if incompatible dimensionsions.

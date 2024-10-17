@@ -55,11 +55,11 @@ impl CPUTensorNetwork {
         }
         let activations = act;
 
-        println!("------------------------------------");
-        println!(
-            "Weights shape: {:?} \n Weights data: {:?} \n Biases shape: {:?} \n Biases data: {:?}",
-            weights.shape, weights.data, biases.shape, biases.data
-        );
+        // println!("------------------------------------");
+        // println!(
+        //     "Weights shape: {:?} \n Weights data: {:?} \n Biases shape: {:?} \n Biases data: {:?}",
+        //     weights.shape, weights.data, biases.shape, biases.data
+        // );
         self.layers.push_back(Layer::TensorLayer {
             weights,
             biases,
@@ -88,7 +88,7 @@ impl CPUTensorNetwork {
                     activations,
                     result,
                 } => {
-                    println!("Processing through Tensor Layer");
+                    // println!("Processing through Tensor Layer");
 
                     // Perform matrix multiplication
                     current_output = weights.multiply(&current_output);
@@ -166,7 +166,7 @@ impl CPUTensorNetwork {
             println!("\n\n-------Current Epoch: {:?}-------", i);
 
             self.back_propogate(&input, targets.clone(), learning_rate);
-            self.print_network();
+            //self.print_network();
         }
     }
 

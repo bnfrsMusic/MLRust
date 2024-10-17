@@ -11,12 +11,14 @@ fn main() {
     //network.add_tensor_layer(2, vec![SIGMOID]);
     //network.add_tensor_layer(3, SIGMOID);
     //network.add_tensor_layer(3, SIGMOID);
+    //network.add_tensor_layer(2, SIGMOID);
+    //network.add_tensor_layer(2, SIGMOID);
     network.add_tensor_layer(2, SIGMOID);
     network.add_tensor_layer(2, SIGMOID);
     //network.add_tensor_layer(2, SIGMOID);
 
     let input_tensor = Tensor::from(vec![2, 1], vec![1.0, 0.0]);
-    let target_tensor = Tensor::from(vec![2, 1], vec![0.5, 0.2]);
+    let target_tensor = Tensor::from(vec![2, 1], vec![1.0, 0.0]); //Desired Output
 
     //Before training
     let mut output_tensor = network.feed_forward(input_tensor.clone());
@@ -25,7 +27,7 @@ fn main() {
 
     network.print_network();
 
-    network.train(input_tensor.clone(), target_tensor, 10000, 0.05);
+    network.train(input_tensor.clone(), target_tensor, 10000, 0.25);
     println!("-----------------BEFORE-------------------");
     println!("Output Tensor: {:?}", output_tensor.data); // Print the output Tensor
     output_tensor = network.feed_forward(input_tensor.clone());
