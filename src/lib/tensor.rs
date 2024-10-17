@@ -29,29 +29,71 @@ impl Tensor {
         Tensor { shape, data }
     }
     pub fn get(&self, index: Vec<usize>) -> f64 {
+        assert!(
+            !self.shape.is_empty(),
+            "Shape is empty, cannot perform get operation"
+        );
+        assert!(
+            index.len() == self.shape.len(),
+            "Index length {:?} does not match shape length {:?}",
+            index.len(),
+            self.shape.len()
+        );
+
         let mut res = 0;
         let mut stride = 1;
 
-        // Iterate over the dimensions in reverse order
         for i in (0..index.len()).rev() {
-            assert!(index[i] < self.shape[i]);
+            assert!(
+                index[i] < self.shape[i],
+                "Index out of bounds for dimension {}",
+                i
+            );
             res += index[i] * stride;
             stride *= self.shape[i];
         }
+
+        assert!(
+            res < self.data.len(),
+            "Calculated index {} is out of bounds for data with length {}",
+            res,
+            self.data.len()
+        );
 
         self.data[res]
     }
 
     pub fn set(&mut self, index: Vec<usize>, value: f64) {
+        assert!(
+            !self.shape.is_empty(),
+            "Shape is empty, cannot perform set operation"
+        );
+        assert!(
+            index.len() == self.shape.len(),
+            "Index length {:?} does not match shape length {:?}",
+            index.len(),
+            self.shape.len()
+        );
+
         let mut res = 0;
         let mut stride = 1;
 
-        // Iterate over the dimensions in reverse order
         for i in (0..index.len()).rev() {
-            assert!(index[i] < self.shape[i]);
+            assert!(
+                index[i] < self.shape[i],
+                "Index out of bounds for dimension {}",
+                i
+            );
             res += index[i] * stride;
             stride *= self.shape[i];
         }
+
+        assert!(
+            res < self.data.len(),
+            "Calculated index {} is out of bounds for data with length {}",
+            res,
+            self.data.len()
+        );
 
         self.data[res] = value;
     }
@@ -59,8 +101,6 @@ impl Tensor {
     pub fn return_vector(&self) -> Vec<f64> {
         self.data.clone()
     }
-
-    //pub fn prnt(&self) -> String {}
 
     pub fn random(shape: Vec<usize>) -> Tensor {
         let mut rng = thread_rng();
@@ -77,7 +117,6 @@ impl Tensor {
 
     pub fn from(shape: Vec<usize>, data: Vec<f64>) -> Tensor {
         //converts vector to tensor
-
         Tensor { shape, data }
     }
 
@@ -86,55 +125,20 @@ impl Tensor {
         Tensor::from(self.shape.clone(), new_data)
     }
 
-    pub fn transpose(&self, dim1: usize, dim2: usize) -> Tensor {
-        if dim1 >= self.shape.len() || dim2 >= self.shape.len() {
-            panic!("Transpose dimensions out of bounds");
-        }
+    pub fn transpose(&self) -> Tensor {
+        assert!(self.shape.len() == 2, "Transpose only supports 2D tensors");
 
-        let mut new_shape = self.shape.clone();
-        new_shape.swap(dim1, dim2);
+        let rows = self.shape[0];
+        let cols = self.shape[1];
+        let mut transposed_data = vec![0.0; self.data.len()];
 
-        let mut new_data = vec![0.0; self.data.len()];
-        let mut idx = vec![0; self.shape.len()];
-
-        for i in 0..self.data.len() {
-            let mut old_idx = idx.clone();
-            old_idx.swap(dim1, dim2);
-            let new_pos = self.coords_to_index(&old_idx);
-            new_data[new_pos] = self.data[i];
-
-            // Increment index
-            for j in (0..self.shape.len()).rev() {
-                idx[j] += 1;
-                if idx[j] < self.shape[j] {
-                    break;
-                } else {
-                    idx[j] = 0;
-                }
+        for i in 0..rows {
+            for j in 0..cols {
+                transposed_data[j * rows + i] = self.get(vec![i, j]);
             }
         }
 
-        Tensor::from(new_shape, new_data)
-    }
-
-    fn coords_to_index(&self, coords: &[usize]) -> usize {
-        let mut index = 0;
-        let mut stride = 1;
-        for i in (0..coords.len()).rev() {
-            index += coords[i] * stride;
-            stride *= self.shape[i];
-        }
-        index
-    }
-
-    fn index_to_coords(&self, index: usize) -> Vec<usize> {
-        let mut coords = vec![0; self.shape.len()];
-        let mut remainder = index;
-        for (i, &dim) in self.shape.iter().enumerate().rev() {
-            coords[i] = remainder % dim;
-            remainder /= dim;
-        }
-        coords
+        Tensor::from(vec![cols, rows], transposed_data)
     }
 
     //--------------------------------------------------------------Multiplication---------------------------------------------------------------------
@@ -142,12 +146,12 @@ impl Tensor {
     pub fn multiply(&self, other: &Tensor) -> Tensor {
         let self_shape_len = self.shape.len();
         let other_shape_len = other.shape.len();
-        println!("{:?} and {:?}", self_shape_len, other_shape_len);
-
+        //println!("{:?} and {:?}", self_shape_len, other_shape_len);
+        /*
         println!(
             "self shape: {:?} \n other shape: {:?}",
             self.shape, other.shape
-        );
+        );*/
         if (other_shape_len == 1 && self_shape_len > other_shape_len) {
             let mut res = Tensor::new(vec![self.shape[0], other.shape[1]]);
             panic!(
@@ -175,7 +179,9 @@ impl Tensor {
         // Check if both tensors are 2D
         if self_shape_len == 2
             && other_shape_len == 2
-            && (self.shape[1] == other.shape[0] || self.shape[0] == self.shape[1])
+            && (self.shape[1] == other.shape[0]
+                || self.shape[0] == self.shape[1]
+                || self.shape[0] == self.shape[0])
         {
             let res = self.matrix_multiply(other);
             println!("shape: {:?} data: {:?}", res.shape, res.data);
@@ -190,7 +196,12 @@ impl Tensor {
 
     fn matrix_multiply(&self, other: &Tensor) -> Tensor {
         assert!(self.shape.len() == 2 && other.shape.len() == 2);
-        assert!(self.shape[1] == other.shape[0] || self.shape == other.shape);
+        assert!(
+            self.shape[1] == other.shape[0] || self.shape == other.shape, // || self.shape[0] == other.shape[0]
+            "Incompatible shapes ({:?} and {:?})for matrix multiplication",
+            self.shape,
+            other.shape
+        );
 
         let mut res = Tensor::new(vec![self.shape[0], other.shape[1]]);
 
@@ -206,31 +217,6 @@ impl Tensor {
 
         res
     }
-    /*
-    fn kronecker_product(&self, other: &Tensor) -> Tensor {
-        let mut new_shape = Vec::with_capacity(self.shape.len() + other.shape.len());
-        for &dim in &self.shape {
-            new_shape.push(dim);
-        }
-        for &dim in &other.shape {
-            new_shape.push(dim);
-        }
-
-        let mut result = Tensor::new(new_shape);
-        for i in 0..self.data.len() {
-            for j in 0..other.data.len() {
-                let res_idx = self
-                    .index_to_coords(i)
-                    .iter()
-                    .chain(other.index_to_coords(j).iter())
-                    .cloned()
-                    .collect::<Vec<_>>();
-                result.set(res_idx, self.data[i] * other.data[j]);
-            }
-        }
-
-        result
-    }*/
 
     fn strassen_multiply(&self, other: &Tensor) -> Tensor {
         // Simplified version of Strassen's Algorithm for 2x2 matrices
@@ -284,6 +270,10 @@ impl Tensor {
         }
 
         res
+    }
+
+    pub fn multiply_scalar(&mut self, scalar: f64) -> Tensor {
+        self.map(&|x| x * scalar)
     }
 
     //--------------------------------------------------------------Addition and Substraction---------------------------------------------------------------------

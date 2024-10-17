@@ -9,19 +9,27 @@ fn main() {
 
     let mut network = CPUTensorNetwork::new(2);
     //network.add_tensor_layer(2, vec![SIGMOID]);
-    network.add_tensor_layer(3, SIGMOID);
-    network.add_tensor_layer(3, SIGMOID);
+    //network.add_tensor_layer(3, SIGMOID);
+    //network.add_tensor_layer(3, SIGMOID);
     network.add_tensor_layer(2, SIGMOID);
+    network.add_tensor_layer(2, SIGMOID);
+    //network.add_tensor_layer(2, SIGMOID);
 
-    let input_tensor = Tensor::from(vec![2, 1], vec![1.0, 0.0]); // Create a Tensor with shape [2] and data [1.0, 0.0]
-    let target_tensor = Tensor::from(vec![2, 1], vec![1.0, 0.0]); // Create a Tensor with shape [2] and data [1.0, 0.0]
-    let output_tensor = network.feed_forward(input_tensor.clone()); // Feed forward through the network
+    let input_tensor = Tensor::from(vec![2, 1], vec![1.0, 0.0]);
+    let target_tensor = Tensor::from(vec![2, 1], vec![0.5, 0.2]);
+
+    //Before training
+    let mut output_tensor = network.feed_forward(input_tensor.clone());
 
     //network.train(input_tensor.clone(), target_tensor.clone(), 10, 0.5);
-    println!("------------------------------------");
 
     network.print_network();
-    network.train(input_tensor, target_tensor, 1, 0.5);
+
+    network.train(input_tensor.clone(), target_tensor, 10000, 0.05);
+    println!("-----------------BEFORE-------------------");
+    println!("Output Tensor: {:?}", output_tensor.data); // Print the output Tensor
+    output_tensor = network.feed_forward(input_tensor.clone());
+    println!("-----------------AFTER-------------------");
     println!("Output Tensor: {:?}", output_tensor.data); // Print the output Tensor
     println!("Elapsed time: {:.2?}", now.elapsed());
 }

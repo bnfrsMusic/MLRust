@@ -12,6 +12,7 @@ pub enum Layer {
         weights: Tensor,
         biases: Tensor,
         activations: Activation<'static>,
+        result: Tensor,
     },
 }
 //
@@ -47,6 +48,8 @@ impl CPUTensorNetwork {
         //Adds tensor layers to the network depending on amount specified
         let weights: Tensor = w; //Creates iterator and creates that many tensors and puts it into a Vector
         let mut biases: Tensor = Tensor::random(vec![amount]); //Creates iterator and creates that many tensors and puts it into a Vector
+        let result: Tensor = Tensor::new(vec![amount]);
+
         if biases.shape.len() < 2 {
             biases.increase_dim(1);
         }
@@ -61,6 +64,7 @@ impl CPUTensorNetwork {
             weights,
             biases,
             activations,
+            result,
         });
     }
 
@@ -68,97 +72,101 @@ impl CPUTensorNetwork {
 
     //--------------------------------------------------------------Feed Forward / Back Propogation---------------------------------------------------------------------
 
-    pub fn feed_forward(&self, input: Tensor) -> Tensor {
+    pub fn feed_forward(&mut self, input: Tensor) -> Tensor {
         println!(
             "Feeding forward {:?} with shape {:?}",
             input.data, input.shape
         );
 
         let mut current_output = input.clone();
-        if input.shape.len() < 2 {
-            current_output.increase_dim(1);
-        }
-        let mut final_output: Option<Tensor> = None;
 
-        for layer in &self.layers {
+        for layer in &mut self.layers {
             match layer {
                 Layer::TensorLayer {
                     weights,
                     biases,
                     activations,
+                    result,
                 } => {
                     println!("Processing through Tensor Layer");
+
                     // Perform matrix multiplication
-                    let mut w: Tensor = weights.clone();
-                    //w.increase_dim(1);
-                    println!(
-                        "Current = shape:\n{:?}\ndata:\n{:?}",
-                        current_output.shape, current_output.data
-                    );
-                    current_output = w.multiply(&current_output);
+                    current_output = weights.multiply(&current_output);
 
                     // Add the biases
                     current_output.add(biases);
 
-                    // Apply each activation function
-                    //for activation in activations {
+                    // Apply the activation function
                     current_output = current_output.map(activations.function);
-                    //}
+
+                    // Assign the computed output to the result
+                    *result = current_output.clone(); // Store the output in result
                 }
                 Layer::InputLayer { size } => {
-                    print!("Input Layer")
+                    println!("Input Layer")
                 }
             }
         }
 
         current_output
-        //.expect("No tensor output found. Network might be empty or improperly configured.")
     }
 
-    pub fn back_propogate(&mut self, outputs: Tensor, targets: Tensor, learning_rate: f64) {
-        //targets => the correct value
+    pub fn back_propogate(&mut self, _input: &Tensor, targets: Tensor, learning_rate: f64) {
+        let mut outputs = self.feed_forward(_input.clone());
 
-        let mut tot_res: Vec<Tensor> = vec![];
-        for layer in self.layers.iter_mut().rev() {
-            match layer {
-                Layer::InputLayer { size } => {
-                    println!("Input shape: {:?}", size);
-                }
-                Layer::TensorLayer {
-                    weights,
-                    biases,
-                    activations,
-                } => {
-                    //Finish this
+        let init_activation = match self
+            .layers
+            .iter()
+            .rev()
+            .find(|layer| matches!(layer, Layer::TensorLayer { .. }))
+        {
+            Some(Layer::TensorLayer { activations, .. }) => activations,
+            _ => panic!("No TensorLayer found in the network"),
+        };
 
-                    println!("Layer weight shape: {:?}", weights.shape);
-                    println!("Layer weight data: {:?}", weights.data);
-                    println!("Layer biases shape: {:?}", biases.shape);
-                    println!("Activation: {:?} ", activations.name);
-                    println!(
-                        "\nMSE: {:?}",
-                        (MSE.derivative)(&outputs, &targets, activations).data
-                    );
-                    tot_res.push((MSE.derivative)(&outputs, &targets, activations));
-                    //println!("RESULT SHAPE: {:?}\nRESULT DATA: {:?}", res.shape, res.data)
+        //get all the results and put them into a vector for access during backprop
+        let results: Vec<Tensor> = self
+            .layers
+            .iter()
+            .rev()
+            .filter_map(|layer| match layer {
+                Layer::TensorLayer { result, .. } => Some(result.clone()),
+                _ => None,
+            })
+            .collect();
+        let mut delta = (MSE.derivative)(&outputs, &targets, init_activation);
+
+        for (i, layer) in self.layers.iter_mut().rev().enumerate() {
+            if let Layer::TensorLayer {
+                weights,
+                biases,
+                activations,
+                result,
+            } = layer
+            {
+                // Update biases
+                biases.substract(&delta.multiply_scalar(learning_rate));
+
+                // Calculate weight gradient
+                let mut weight_gradient = results[i].multiply(&delta.transpose());
+                weights.substract(&weight_gradient.multiply_scalar(learning_rate));
+
+                // Calculate delta for the next layer (if any)
+                if i < results.len() - 1 {
+                    delta = weights.transpose().multiply(&delta);
+                    delta = delta.multiply(&outputs.map(activations.derivative));
+                    outputs = results[i + 1].clone(); // Set outputs for the next layer
                 }
             }
         }
-        for tensor in tot_res {
-            println!(
-                "RESULT Tensor Shape: {:?}\nData: {:?}",
-                tensor.shape, tensor.data
-            )
-        }
     }
+
     pub fn train(&mut self, input: Tensor, targets: Tensor, epoch: usize, learning_rate: f64) {
         for i in 0..epoch {
             println!("\n\n-------Current Epoch: {:?}-------", i);
-            self.back_propogate(
-                self.feed_forward(input.clone()),
-                targets.clone(),
-                learning_rate,
-            )
+
+            self.back_propogate(&input, targets.clone(), learning_rate);
+            self.print_network();
         }
     }
 
@@ -175,13 +183,14 @@ impl CPUTensorNetwork {
                     weights,
                     biases,
                     activations,
+                    result,
                 } => {
                     //Finish this
 
                     println!("Layer weight shape: {:?}", weights.shape);
-                    println!("Layer weight data: {:?}", weights.data);
                     println!("Layer biases shape: {:?}", biases.shape);
                     println!("Activation: {:?} ", activations.name);
+                    println!("Layer result data: {:?}", result.data);
                 }
             }
         }
