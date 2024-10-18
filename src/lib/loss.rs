@@ -21,24 +21,22 @@ pub const MSE: LossFunction = LossFunction {
         //Sum[i=1] / n
         diff.data.iter().sum::<f64>() / (actual.data.len() as f64)
     },
-    derivative: |actual: &Tensor, predicted: &Tensor, act: &Activation<'static>| {
-        //print!("TARGETS: {:?}", actual.data);
-        //println!("\n\n\nACT shape: {:?}", actual.shape);
-        let mut der = predicted.clone();
-        let mut cost = predicted.clone();
+    derivative: |predicted: &Tensor, actual: &Tensor, _activation: &Activation<'static>| {
+        // Derivative of MSE
+        assert!(
+            predicted.shape == actual.shape,
+            "Shape mismatch: predicted shape {:?} and actual shape {:?}",
+            predicted.shape,
+            actual.shape
+        );
 
-        der = der.map(act.derivative);
-        //makes sure the actual and predicted shape are the same (just in case I screwed up somewhere)
-        assert_eq!(actual.shape, predicted.shape);
+        let n = predicted.data.len() as f64; // number of elements
+        let mut gradient = Tensor::new(predicted.shape.clone());
 
-        cost.substract(actual);
-        der = der.multiply(&cost);
+        for i in 0..predicted.data.len() {
+            gradient.data[i] = (predicted.data[i] - actual.data[i]) * (2.0 / n);
+        }
 
-        //println!("DER Shape: {:?}", der.shape);
-        der = der.map(&|x| x * -2.0);
-        assert_eq!(der.shape, predicted.shape);
-        //panic!("Predicted: {:?}\nDer: {:?}", predicted.data, der.data);
-
-        der
+        gradient
     },
 };

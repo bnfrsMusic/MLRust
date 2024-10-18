@@ -8,17 +8,14 @@ fn main() {
     let now = Instant::now();
 
     let mut network = CPUTensorNetwork::new(2);
-    //network.add_tensor_layer(2, vec![SIGMOID]);
-    //network.add_tensor_layer(3, SIGMOID);
-    //network.add_tensor_layer(3, SIGMOID);
+    network.add_tensor_layer(3, SIGMOID); //Backprop currently can NOT handle diff dimensions
+
     //network.add_tensor_layer(2, SIGMOID);
-    //network.add_tensor_layer(2, SIGMOID);
-    network.add_tensor_layer(2, SIGMOID);
     network.add_tensor_layer(2, SIGMOID);
     //network.add_tensor_layer(2, SIGMOID);
 
     let input_tensor = Tensor::from(vec![2, 1], vec![1.0, 0.0]);
-    let target_tensor = Tensor::from(vec![2, 1], vec![1.0, 0.0]); //Desired Output
+    let target_tensor = Tensor::from(vec![2, 1], vec![1.0, 0.5]); //Desired Output
 
     //Before training
     let mut output_tensor = network.feed_forward(input_tensor.clone());
