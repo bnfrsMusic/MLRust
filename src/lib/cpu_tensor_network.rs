@@ -145,11 +145,17 @@ impl CPUTensorNetwork {
             } = layer
             {
                 // Update biases
-                biases.substract(&delta.multiply_scalar(learning_rate));
+                biases.subtract(&delta.multiply_scalar(learning_rate));
 
                 // Calculate weight gradient
                 let mut weight_gradient = results[i].multiply(&delta.transpose());
-                weights.substract(&weight_gradient.multiply_scalar(learning_rate));
+
+                // panic!(
+                //     "\n\nDelta shape: {:?}\nBias Shape {:?}\nWeight Shape {:?}\nWeight Gradient Shape {:?}",
+                //     delta.shape, biases.shape, weights.shape, weight_gradient.shape
+                // );
+
+                weights.subtract(&weight_gradient.multiply_scalar(learning_rate));
 
                 // Calculate delta for the next layer (if any)
                 if i < results.len() - 1 {
@@ -185,11 +191,10 @@ impl CPUTensorNetwork {
                     activations,
                     result,
                 } => {
-                    //Finish this
-
                     println!("Layer weight shape: {:?}", weights.shape);
                     println!("Layer biases shape: {:?}", biases.shape);
                     println!("Activation: {:?} ", activations.name);
+                    println!("Layer result shape: {:?}", result.shape);
                     println!("Layer result data: {:?}", result.data);
                 }
             }

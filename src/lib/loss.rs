@@ -15,7 +15,7 @@ pub const MSE: LossFunction = LossFunction {
         let mut diff = actual.clone();
 
         //(actual - predicted)^2
-        diff.substract(predicted); //calculates the difference
+        diff.subtract(predicted); //calculates the difference
         diff = diff.dot(&diff); //Squares the difference
 
         //Sum[i=1] / n

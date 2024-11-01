@@ -276,7 +276,7 @@ impl Tensor {
         self.map(&|x| x * scalar)
     }
 
-    //--------------------------------------------------------------Addition and Substraction---------------------------------------------------------------------
+    //--------------------------------------------------------------Addition and Subtraction---------------------------------------------------------------------
 
     pub fn add(&mut self, other: &Tensor) {
         assert!(
@@ -300,7 +300,7 @@ impl Tensor {
         }
     }
 
-    pub fn substract(&mut self, other: &Tensor) {
+    pub fn subtract(&mut self, other: &Tensor) {
         assert!(
             self.shape == other.shape || other.shape.len() == 1 && other.shape[0] == self.shape[0],
             "Shape mismatch for subtraction: {:?} and {:?} with data {:?} and {:?}",
