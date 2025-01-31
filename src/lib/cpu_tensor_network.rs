@@ -1,7 +1,11 @@
 use crate::lib::loss::MSE;
 
 use super::{activations::Activation, tensor::Tensor};
-use std::collections::VecDeque;
+use std::{
+    collections::VecDeque,
+    fs::{write, OpenOptions},
+    io::Write,
+};
 
 //#[derive(Clone)]
 pub enum Layer {
@@ -112,6 +116,13 @@ impl CPUTensorNetwork {
     }
 
     pub fn back_propogate(&mut self, _input: &Tensor, targets: Tensor, learning_rate: f64) {
+        //Data file for debugging tensor values
+        let mut data_file = OpenOptions::new()
+            .append(true)
+            .create(true)
+            .open("delta.txt")
+            .expect("Cannot open file");
+
         let mut outputs = self.feed_forward(_input.clone());
 
         let init_activation = match self
@@ -135,7 +146,12 @@ impl CPUTensorNetwork {
             })
             .collect();
         let mut delta = (MSE.derivative)(&outputs, &targets, init_activation);
+        println!(
+            "init DELTA: \nShape{:?}\nData:{:?}\n",
+            delta.shape, delta.data
+        );
 
+        //iterate though each layer in reverse
         for (i, layer) in self.layers.iter_mut().rev().enumerate() {
             if let Layer::TensorLayer {
                 weights,
@@ -144,6 +160,16 @@ impl CPUTensorNetwork {
                 result,
             } = layer
             {
+                //write delta to file for debugging
+                let delta_str = format!(
+                    "Layer: {:?}\n\tDELTA: \n\tShape{:?}\n\tData:{:?}\n",
+                    i, delta.shape, delta.data
+                );
+
+                data_file
+                    .write(delta_str.as_bytes())
+                    .expect("Unable to write to file");
+
                 // Calculate delta for the next layer (if any)
                 if i < results.len() - 1 {
                     // Update biases
@@ -152,18 +178,18 @@ impl CPUTensorNetwork {
                     // Calculate weight gradient
                     let mut weight_gradient =
                         results[i + 1].multiply(&delta.transpose()).transpose();
-
-                    // panic!(
-                    //     delta.shape, biases.shape, weights.shape, weight_gradient.shape
-                    // );
-
+                    println!(
+                        "Weight gradient Shape {:?}, Data {:?}",
+                        weight_gradient.shape, weight_gradient.data
+                    );
                     assert_eq!(&weights.shape, &weight_gradient.shape);
 
                     weights.subtract(&weight_gradient.multiply_scalar(learning_rate));
-
                     delta = weights.transpose().multiply(&delta);
                     delta = delta.multiply(&outputs.map(activations.derivative));
                     outputs = results[i + 1].clone(); // Set outputs for the next layer
+                } else {
+                    println!("Delta: {:?}", delta.data);
                 }
             }
         }
@@ -172,7 +198,16 @@ impl CPUTensorNetwork {
     pub fn train(&mut self, input: Tensor, targets: Tensor, epoch: usize, learning_rate: f64) {
         for i in 0..epoch {
             println!("\n\n-------Current Epoch: {:?}-------", i);
+            let delta_str = format!("-------------------------\nEpoch: {:?}\n", i);
 
+            let mut data_file = OpenOptions::new()
+                .append(true)
+                .create(true)
+                .open("delta.txt")
+                .expect("Cannot open file");
+            data_file
+                .write(delta_str.as_bytes())
+                .expect("Unable to write to file");
             self.back_propogate(&input, targets.clone(), learning_rate);
             //self.print_network();
         }
@@ -201,5 +236,29 @@ impl CPUTensorNetwork {
                 }
             }
         }
+    }
+    pub fn return_network(&mut self) -> String {
+        //targets => the correct value
+        let mut network_str = String::new();
+        for layer in self.layers.iter_mut() {
+            match layer {
+                Layer::InputLayer { size } => {
+                    println!("Input shape: {:?}", size);
+                }
+                Layer::TensorLayer {
+                    weights,
+                    biases,
+                    activations,
+                    result,
+                } => {
+                    network_str.push_str(&format!("Layer weight shape: {:?}\n", weights.shape));
+                    network_str.push_str(&format!("Layer biases shape: {:?}\n", biases.shape));
+                    network_str.push_str(&format!("Activation: {:?}\n", activations.name));
+                    network_str.push_str(&format!("Layer result shape: {:?}\n", result.shape));
+                    network_str.push_str(&format!("Layer result data: {:?}\n", result.data));
+                }
+            }
+        }
+        network_str
     }
 }

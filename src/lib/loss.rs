@@ -30,10 +30,11 @@ pub const MSE: LossFunction = LossFunction {
             actual.shape
         );
 
-        let n = predicted.data.len() as f64; // number of elements
-        let mut gradient = Tensor::new(predicted.shape.clone());
+        let n: f64 = predicted.data.len() as f64; // number of elements
+        let mut gradient: Tensor = Tensor::new(predicted.shape.clone());
 
         for i in 0..predicted.data.len() {
+            // We multiply by 2/n as per the derivative of MSE: (2/n) * (predicted - actual)
             gradient.data[i] = (predicted.data[i] - actual.data[i]) * (2.0 / n);
         }
 
