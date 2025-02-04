@@ -49,39 +49,20 @@ fn main() {
     // //------------------------Training------------------------
 
     network.train(input_arr.clone(), target_arr.clone(), 1000, 2, 0.05);
-    // println!(
-    //     "Output {}: {:?}",
-    //     n,
-    //     network.feed_forward(input_arr[n].clone()).data
-    // );
+
     //------------------------Printing Results----------------
     println!("-----------------BEFORE-------------------");
     println!("Output Tensor: {:?}", output_tensor.data); // Print the output Tensor
                                                          //output_tensor = network.feed_forward(input_arr[0].clone());
     println!("-----------------AFTER-------------------");
+
     for n in 0..input_arr.len() {
-        let mut results_file = OpenOptions::new()
-            .create(true)
-            .write(true)
-            .append(true)
-            .open("results.txt")
-            .expect("Cannot open results file");
-
-        writeln!(
-            results_file,
-            "Output {}: {:?}",
-            n,
-            network.feed_forward(input_arr[n].clone()).data
-        )
-        .expect("Unable to write to results file");
-
         println!(
             "Output {}: {:?}",
             n,
             network.feed_forward(input_arr[n].clone()).data
         );
     }
-    //println!("Output Tensor: {:?}", output_tensor.data); // Print the output Tensor
     println!("Elapsed time: {:.2?}", now.elapsed());
     println!("-----------------Debug-------------------");
 

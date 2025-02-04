@@ -186,7 +186,7 @@ impl CPUTensorNetwork {
                     );
                     assert_eq!(&weights.shape, &weight_gradient.shape);
 
-                    weights.subtract(&weight_gradient.multiply_scalar(learning_rate));
+                    weights.add(&weight_gradient.multiply_scalar(learning_rate));
                     delta = weights.transpose().multiply(&delta);
                     delta = delta.multiply(&outputs.map(activations.derivative));
                     outputs = results[i + 1].clone(); // Set outputs for the next layer
@@ -205,7 +205,7 @@ impl CPUTensorNetwork {
         batch_size: usize,
         learning_rate: f64,
     ) {
-        let batches = (input.len() / batch_size);
+        let batches = input.len() / batch_size;
 
         for i in 0..epoch {
             println!("\n\n-------Current Epoch: {:?}-------", i);
