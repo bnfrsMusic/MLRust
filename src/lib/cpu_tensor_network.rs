@@ -3,6 +3,7 @@ use crate::lib::loss::MSE;
 use super::{activations::Activation, tensor::Tensor};
 use std::{
     collections::VecDeque,
+    fmt::format,
     fs::{write, OpenOptions},
     io::Write,
 };
@@ -117,11 +118,11 @@ impl CPUTensorNetwork {
 
     pub fn back_propogate(&mut self, _input: &Tensor, targets: Tensor, learning_rate: f64) {
         //Data file for debugging tensor values
-        let mut data_file = OpenOptions::new()
-            .append(true)
-            .create(true)
-            .open("delta.txt")
-            .expect("Cannot open file");
+        // let mut data_file = OpenOptions::new()
+        //     .append(true)
+        //     .create(true)
+        //     .open("delta.txt")
+        //     .expect("Cannot open file");
 
         let mut outputs = self.feed_forward(_input.clone());
 
@@ -145,7 +146,7 @@ impl CPUTensorNetwork {
                 _ => None,
             })
             .collect();
-        let mut delta = (MSE.derivative)(&outputs, &targets, init_activation);
+        let mut delta = (MSE.derivative)(&outputs, &targets, &init_activation);
         println!(
             "init DELTA: \nShape{:?}\nData:{:?}\n",
             delta.shape, delta.data
@@ -161,14 +162,15 @@ impl CPUTensorNetwork {
             } = layer
             {
                 //write delta to file for debugging
+
                 let delta_str = format!(
                     "Layer: {:?}\n\tDELTA: \n\tShape{:?}\n\tData:{:?}\n",
                     i, delta.shape, delta.data
                 );
 
-                data_file
-                    .write(delta_str.as_bytes())
-                    .expect("Unable to write to file");
+                // data_file
+                //     .write(delta_str.as_bytes())
+                //     .expect("Unable to write to file");
 
                 // Calculate delta for the next layer (if any)
                 if i < results.len() - 1 {
@@ -195,21 +197,26 @@ impl CPUTensorNetwork {
         }
     }
 
-    pub fn train(&mut self, input: Tensor, targets: Tensor, epoch: usize, learning_rate: f64) {
+    pub fn train(
+        &mut self,
+        input: Vec<Tensor>,
+        targets: Vec<Tensor>,
+        epoch: usize,
+        batch_size: usize,
+        learning_rate: f64,
+    ) {
+        let batches = (input.len() / batch_size);
+
         for i in 0..epoch {
             println!("\n\n-------Current Epoch: {:?}-------", i);
-            let delta_str = format!("-------------------------\nEpoch: {:?}\n", i);
-
-            let mut data_file = OpenOptions::new()
-                .append(true)
-                .create(true)
-                .open("delta.txt")
-                .expect("Cannot open file");
-            data_file
-                .write(delta_str.as_bytes())
-                .expect("Unable to write to file");
-            self.back_propogate(&input, targets.clone(), learning_rate);
-            //self.print_network();
+            for j in 0..batches {
+                for k in j * batch_size..(j + 1) * batch_size {
+                    self.back_propogate(&input[k], targets[k].clone(), learning_rate);
+                }
+            }
+            for j in batches * batch_size..input.len() {
+                self.back_propogate(&input[j], targets[j].clone(), learning_rate);
+            }
         }
     }
 

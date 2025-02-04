@@ -5,16 +5,16 @@ use lib::cpu_tensor_network::CPUTensorNetwork;
 
 fn main() {
     //Clears out the file
-    let mut data_file = OpenOptions::new()
-        .create(true)
-        .write(true)
-        .truncate(true)
-        .open("delta.txt")
-        .expect("Cannot open file");
+    // let mut data_file = OpenOptions::new()
+    //     .create(true)
+    //     .write(true)
+    //     .truncate(true)
+    //     .open("delta.txt")
+    //     .expect("Cannot open file");
 
-    data_file
-        .write("--\n".as_bytes())
-        .expect("Unable to write to file");
+    // data_file
+    //     .write("--\n".as_bytes())
+    //     .expect("Unable to write to file");
 
     use std::time::Instant;
     let now = Instant::now();
@@ -34,7 +34,7 @@ fn main() {
     ];
     let target_arr: Vec<Tensor> = vec![
         Tensor::from(vec![1, 1], vec![1.0]),
-        Tensor::from(vec![1, 1], vec![0.0]),
+        Tensor::from(vec![1, 1], vec![1.0]),
         Tensor::from(vec![1, 1], vec![0.0]),
         Tensor::from(vec![1, 1], vec![0.0]),
     ];
@@ -47,23 +47,13 @@ fn main() {
     network.print_network();
 
     // //------------------------Training------------------------
-    for n in 0..input_arr.len() {
-        //does not seem to work if i train with more than two data points (two input -> output pairs)
-        //might be due to model complexity being limited by the current dimension support.
-        /*
-        Possible Fixes:
-        - IT IS OVER-FITTING TO THE LAST GIVEN DATA POINTS
-        - Allow any size neural networks so that there are more parameters
-        - ...idk
 
-        */
-        network.train(input_arr[n].clone(), target_arr[n].clone(), 100, 0.05);
-        println!(
-            "Output {}: {:?}",
-            n,
-            network.feed_forward(input_arr[n].clone()).data
-        );
-    }
+    network.train(input_arr.clone(), target_arr.clone(), 1000, 2, 0.05);
+    // println!(
+    //     "Output {}: {:?}",
+    //     n,
+    //     network.feed_forward(input_arr[n].clone()).data
+    // );
     //------------------------Printing Results----------------
     println!("-----------------BEFORE-------------------");
     println!("Output Tensor: {:?}", output_tensor.data); // Print the output Tensor
@@ -93,4 +83,7 @@ fn main() {
     }
     //println!("Output Tensor: {:?}", output_tensor.data); // Print the output Tensor
     println!("Elapsed time: {:.2?}", now.elapsed());
+    println!("-----------------Debug-------------------");
+
+    network.print_network();
 }
