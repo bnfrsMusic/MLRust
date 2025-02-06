@@ -109,7 +109,7 @@ impl Tensor {
         rng.gen::<f64>();
 
         for i in 0..res.data.len() {
-            res.data[i] = rng.gen::<f64>() * 2.0 - 1.0;
+            res.data[i] = rng.gen::<f64>();
         }
 
         res
@@ -266,7 +266,7 @@ impl Tensor {
         let mut res = Tensor::new(ten);
 
         for i in 0..self.data.len() {
-            res.data[i] = self.data[i] * self.data[i]
+            res.data[i] = self.data[i] * other.data[i]
         }
 
         res
