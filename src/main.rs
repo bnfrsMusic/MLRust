@@ -4,18 +4,6 @@ pub mod lib;
 use lib::cpu_tensor_network::CPUTensorNetwork;
 
 fn main() {
-    //Clears out the file
-    // let mut data_file = OpenOptions::new()
-    //     .create(true)
-    //     .write(true)
-    //     .truncate(true)
-    //     .open("delta.txt")
-    //     .expect("Cannot open file");
-
-    // data_file
-    //     .write("--\n".as_bytes())
-    //     .expect("Unable to write to file");
-
     use std::time::Instant;
     let now = Instant::now();
 
@@ -30,30 +18,38 @@ fn main() {
         Tensor::from(vec![2, 1], vec![1.0, 0.0]),
         Tensor::from(vec![2, 1], vec![0.0, 1.0]),
         Tensor::from(vec![2, 1], vec![1.0, 1.0]),
-        Tensor::from(vec![2, 1], vec![0.0, 0.0]),
+        // Tensor::from(vec![2, 1], vec![0.0, 0.0]),
     ];
     let target_arr: Vec<Tensor> = vec![
+        Tensor::from(vec![1, 1], vec![0.0]),
         Tensor::from(vec![1, 1], vec![1.0]),
         Tensor::from(vec![1, 1], vec![1.0]),
-        Tensor::from(vec![1, 1], vec![0.0]),
-        Tensor::from(vec![1, 1], vec![0.0]),
+        // Tensor::from(vec![1, 1], vec![0.0]),
     ];
 
     let input_tensor = Tensor::from(vec![2, 1], vec![1.0, 0.0]);
 
     //Before training
-    let output_tensor = network.feed_forward(input_tensor.clone());
+    let mut output_tensor = network.feed_forward(input_tensor.clone());
 
     network.print_network();
 
     // //------------------------Training------------------------
-
-    network.train(input_arr.clone(), target_arr.clone(), 1000, 2, 0.05);
+    // network.train(input_arr.clone(), target_arr.clone(), 1000, 2, 0.05);
+    network.train(input_arr.clone(), target_arr.clone(), 1000, 1, 0.05);
 
     //------------------------Printing Results----------------
     println!("-----------------BEFORE-------------------");
-    println!("Output Tensor: {:?}", output_tensor.data); // Print the output Tensor
-                                                         //output_tensor = network.feed_forward(input_arr[0].clone());
+    // println!("Output Tensor: {:?}", output_tensor.data); // Print the output Tensor
+    // for n in 0..input_arr.len() {
+    //     println!(
+    //         "Output {}: {:?}",
+    //         n,
+    //         network.feed_forward(input_arr[n].clone()).data
+    //     );
+    // }
+    output_tensor = network.feed_forward(input_arr[0].clone());
+
     println!("-----------------AFTER-------------------");
 
     for n in 0..input_arr.len() {
