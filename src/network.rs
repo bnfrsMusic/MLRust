@@ -15,7 +15,7 @@ pub struct Layer {
 
 impl Layer {
     pub fn new(input_size: usize, output_size: usize, activation: Activation) -> Self {
-        // He initialization for weights: scale by sqrt(2/n_in)
+        // The initialization for weights: scale by sqrt(2/n_in)
         let scale = (2.0 / input_size as f64).sqrt();
         let mut weights = Tensor::random(input_size, output_size);
         weights = &weights * scale;
