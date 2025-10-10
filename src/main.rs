@@ -1,29 +1,106 @@
-mod tensor;
-mod network;
-mod activations;
-mod loss;
-mod ndarray;
-
-use core::net;
+pub mod lib;
 use std::vec;
 
-use ndarray::NdArray;
-use network::{Network, Layer};
-use tensor::Tensor;
-use activations::Activation;
-use loss::LossFunction;
+
+use lib::{network::NeuralNetwork, activations::Activation, loss::LossFunction};
 
 
-fn main(){
-
-    let mut arr:NdArray<f64> = NdArray::rand(vec![5,2]);
-    println!("Shape: {:?}", arr.shape());
-    println!("Size: {:?}", arr.size());
-    println!("Data: {:?}", arr.data());
+fn main() {
     
+    // network: 2 inputs -> 5 hidden -> 1 output
+    let mut n = NeuralNetwork::new(2);
+    n.add_layer(5, Activation::Sigmoid);
+    n.add_layer(1, Activation::Sigmoid);
+    
+    println!("=== Initial Network ===");
+    n.print_network();
+    
+    // XOR gate
+    let training_data = vec![
+        (vec![0.0, 0.0], vec![0.0]),
+        (vec![0.0, 1.0], vec![1.0]),
+        (vec![1.0, 0.0], vec![1.0]),
+        (vec![1.0, 1.0], vec![0.0]),
+    ];
+    
+    let learning_rate = 0.5;
+    let epochs = 10000;
+    
+    println!("\n=== Training XOR Gate ===");
+    
+    // Training loop
+    for epoch in 0..epochs {
+        let total_loss = 0.0;
+        
+        // Train
+        for (inputs, targets) in &training_data {
 
+            n.back_propagation(
+                inputs.clone(),
+                targets.clone(),
+                LossFunction::MeanSquaredError,
+                learning_rate,
+            );
+        }
+        
+        // Print progress every 1000 epochs
+        if epoch % 1000 == 0 {
+            let avg_loss = total_loss / training_data.len() as f64;
+            println!("Epoch {}: Average Loss = {:.6}", epoch, avg_loss);
+        }
+    }
+    
+    println!("\n=== Testing Trained Network ===");
+    
+    // Test all XOR combinations
+    for (inputs, expected) in &training_data {
+        let output = n.feed_forward_with_cache(inputs.clone());
+        let predicted = if output[0] > 0.5 { 1.0 } else { 0.0 };
+        
+        println!(
+            "Input: {:?} | Expected: {:.1} | Output: {:.4} | Predicted: {:.1}",
+            inputs, expected[0], output[0], predicted
+        );
+    }
+    
+    println!("\n=== Final Network ===");
+    n.print_network();
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// fn main(){
+
+
+//     let mut n = NeuralNetwork::new(2);
+//     n.add_layer(5, Activation::Linear);
+//     n.add_layer(2, Activation::Linear);
+
+//     n.print_network();
+
+
+//     let x =  n.feed_forward(vec![0.0,1.0]);
+
+//     println!("Feed Forward {:?}", x);
+
+// }
 
 
 
