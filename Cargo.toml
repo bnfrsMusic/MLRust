@@ -1,12 +1,12 @@
 [package]
-name = "rust_neural_network"
+name = "mlrust"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 image = "0.25.1"
-ndarray = "0.16.1"
-ndarray-rand = "0.15.0"
+ndarray = "0.17.2"
+ndarray-rand = "0.16.0"
 
 rand = "0.8.5"
 #serde = {version = "1.0.203", features = ["derive"]}
