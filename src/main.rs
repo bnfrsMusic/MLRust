@@ -5,7 +5,7 @@ use std::f32::consts::PI;
 //  Helpers
 // ============================================================
 
-/// run one SGD step on a single (input, target) pair
+///run one SGD step on a single (input, target) pair
 fn train_step<B: Backend>(
     network: &mut Network<B>,
     optimizer: &Sgd,
@@ -107,7 +107,7 @@ fn run_sine() {
         .collect();
     let all_y: Vec<f32> = all_x.iter().map(|&x| x.sin()).collect();
 
-    // Train on every other point (even indices), test on all
+    //train on every other point (even indices), test on all
     let train_x: Vec<f32> = all_x.iter().copied().step_by(2).collect();
     let train_y: Vec<f32> = all_y.iter().copied().step_by(2).collect();
     let n_train = train_x.len();
